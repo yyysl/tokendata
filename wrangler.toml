@@ -1,0 +1,12 @@
+name = "tokendata"
+main = "app.py"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "tokendata-prod"
+
+[env.staging]
+name = "tokendata-staging"
+
+[build]
+command = "pip install -r requirements.txt"
