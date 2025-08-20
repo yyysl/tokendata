@@ -200,7 +200,15 @@
         // 加载市场数据
         async function loadMarketData() {
             try {
-                const response = await fetch('https://api.coingecko.com/api/v3/global');
+                // 使用CORS代理
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const apiUrl = 'https://api.coingecko.com/api/v3/global';
+                const response = await fetch(proxyUrl + apiUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'TokenData/1.0'
+                    }
+                });
                 const data = await response.json();
                 const globalData = data.data;
                 
@@ -236,7 +244,15 @@
         async function loadTokenData() {
             try {
                 const limit = document.getElementById('limit-select').value;
-                const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`);
+                // 使用CORS代理
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const apiUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`;
+                const response = await fetch(proxyUrl + apiUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'TokenData/1.0'
+                    }
+                });
                 const data = await response.json();
                 
                 let tableHTML = `
