@@ -1,5 +1,5 @@
 name = "tokendata"
-main = "app.py"
+main = "index.py"
 compatibility_date = "2024-01-01"
 
 [env.production]
