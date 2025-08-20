@@ -7,7 +7,7 @@ import os
 import sys
 import logging
 from datetime import datetime
-
+import pandas as pd
 import requests
 import time
 
@@ -28,7 +28,7 @@ app = Dash(__name__,
 
 # 全局数据存储
 global_data = {
-    'market_data': [],
+    'market_data': pd.DataFrame(),
     'global_summary': {},
     'last_update': None
 }
@@ -57,29 +57,32 @@ class SimpleDataAggregator:
             
             data = response.json()
             if not data:
-                return []
+                return pd.DataFrame()
             
-            # 处理数据，转换为字典列表
-            processed_data = []
-            for item in data:
-                processed_item = {
-                    'rank': item.get('market_cap_rank', 0),
-                    'name': item.get('name', ''),
-                    'symbol': item.get('symbol', ''),
-                    'current_price': item.get('current_price', 0),
-                    'market_cap': item.get('market_cap', 0),
-                    'volume_24h': item.get('total_volume', 0),
-                    'change_1h': float(item.get('price_change_percentage_1h_in_currency', 0) or 0),
-                    'change_24h': float(item.get('price_change_percentage_24h_in_currency', 0) or 0),
-                    'change_7d': float(item.get('price_change_percentage_7d_in_currency', 0) or 0)
-                }
-                processed_data.append(processed_item)
+            df = pd.DataFrame(data)
             
-            return processed_data
+            # 重命名列
+            column_mapping = {
+                'market_cap': 'market_cap',
+                'market_cap_rank': 'rank',
+                'total_volume': 'volume_24h',
+                'price_change_percentage_1h_in_currency': 'change_1h',
+                'price_change_percentage_24h_in_currency': 'change_24h',
+                'price_change_percentage_7d_in_currency': 'change_7d'
+            }
+            
+            df = df.rename(columns=column_mapping)
+            
+            # 处理缺失值
+            df['change_1h'] = pd.to_numeric(df['change_1h'], errors='coerce')
+            df['change_24h'] = pd.to_numeric(df['change_24h'], errors='coerce')
+            df['change_7d'] = pd.to_numeric(df['change_7d'], errors='coerce')
+            
+            return df
             
         except Exception as e:
             logger.error(f"获取市场数据失败: {e}")
-            return []
+            return pd.DataFrame()
     
     def get_global_summary(self):
         """获取全球市场摘要"""
@@ -143,9 +146,9 @@ def update_data():
         logger.info("开始更新数据...")
         
         # 获取市场数据
-        data = aggregator.get_market_data(50)
-        if data:
-            global_data['market_data'] = data
+        df = aggregator.get_market_data(50)
+        if not df.empty:
+            global_data['market_data'] = df
         
         # 获取全球摘要
         summary = aggregator.get_global_summary()
@@ -300,16 +303,16 @@ def update_token_table(limit, n_clicks, n_intervals):
     if n_clicks > 0 or n_intervals > 0:
         update_data()
     
-    data = global_data['market_data']
-    if not data:
+    df = global_data['market_data']
+    if df.empty:
         return html.Div("无法获取代币数据", style={'textAlign': 'center', 'color': '#e74c3c'})
     
     # 限制显示数量
-    data_display = data[:limit]
+    df_display = df.head(limit)
     
     # 创建表格行
     rows = []
-    for row in data_display:
+    for _, row in df_display.iterrows():
         change_1h = row.get('change_1h', 0)
         change_24h = row.get('change_24h', 0)
         change_7d = row.get('change_7d', 0)
