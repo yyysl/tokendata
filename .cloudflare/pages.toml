@@ -1,0 +1,5 @@
+[build]
+command = "pip install -r requirements-cloudflare.txt"
+
+[build.environment]
+PIP_REQUIREMENTS_FILE = "requirements-cloudflare.txt"

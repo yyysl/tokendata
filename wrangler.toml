@@ -9,4 +9,4 @@ name = "tokendata-prod"
 name = "tokendata-staging"
 
 [build]
-command = "pip install -r requirements-cloudflare.txt"
+command = "pip install -r requirements.txt"
