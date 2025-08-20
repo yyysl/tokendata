@@ -121,12 +121,25 @@
             font-size: 12px;
             margin-top: 20px;
         }
+        .demo-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚀 TokenData - 主流代币监控</h1>
+        </div>
+        
+        <div class="demo-notice">
+            <strong>演示模式</strong> - 由于CORS限制，当前显示模拟数据。实际部署时可通过后端API获取真实数据。
         </div>
         
         <div class="controls">
@@ -170,6 +183,27 @@
     </div>
 
     <script>
+        // 模拟数据
+        const mockGlobalData = {
+            total_market_cap: { usd: 2456789012345 },
+            total_volume: { usd: 987654321098 },
+            market_cap_change_percentage_24h_usd: 2.45,
+            market_cap_percentage: { btc: 48.5 }
+        };
+
+        const mockTokens = [
+            { market_cap_rank: 1, name: "Bitcoin", symbol: "btc", current_price: 43250.67, market_cap: 845678901234, total_volume: 23456789012, price_change_percentage_1h_in_currency: 0.85, price_change_percentage_24h_in_currency: 2.34, price_change_percentage_7d_in_currency: 5.67 },
+            { market_cap_rank: 2, name: "Ethereum", symbol: "eth", current_price: 2650.45, market_cap: 318765432109, total_volume: 15678901234, price_change_percentage_1h_in_currency: -0.23, price_change_percentage_24h_in_currency: 1.87, price_change_percentage_7d_in_currency: 3.45 },
+            { market_cap_rank: 3, name: "Tether", symbol: "usdt", current_price: 1.00, market_cap: 98765432109, total_volume: 45678901234, price_change_percentage_1h_in_currency: 0.01, price_change_percentage_24h_in_currency: 0.02, price_change_percentage_7d_in_currency: 0.05 },
+            { market_cap_rank: 4, name: "BNB", symbol: "bnb", current_price: 312.78, market_cap: 45678901234, total_volume: 2345678901, price_change_percentage_1h_in_currency: 1.23, price_change_percentage_24h_in_currency: -0.56, price_change_percentage_7d_in_currency: 2.34 },
+            { market_cap_rank: 5, name: "Solana", symbol: "sol", current_price: 98.45, market_cap: 34567890123, total_volume: 3456789012, price_change_percentage_1h_in_currency: -1.45, price_change_percentage_24h_in_currency: 3.21, price_change_percentage_7d_in_currency: 8.76 },
+            { market_cap_rank: 6, name: "USDC", symbol: "usdc", current_price: 1.00, market_cap: 23456789012, total_volume: 12345678901, price_change_percentage_1h_in_currency: 0.00, price_change_percentage_24h_in_currency: 0.01, price_change_percentage_7d_in_currency: 0.02 },
+            { market_cap_rank: 7, name: "XRP", symbol: "xrp", current_price: 0.5678, market_cap: 19876543210, total_volume: 2345678901, price_change_percentage_1h_in_currency: 0.34, price_change_percentage_24h_in_currency: -1.23, price_change_percentage_7d_in_currency: 4.56 },
+            { market_cap_rank: 8, name: "Cardano", symbol: "ada", current_price: 0.4567, market_cap: 15678901234, total_volume: 1234567890, price_change_percentage_1h_in_currency: -0.67, price_change_percentage_24h_in_currency: 2.45, price_change_percentage_7d_in_currency: 6.78 },
+            { market_cap_rank: 9, name: "Avalanche", symbol: "avax", current_price: 23.45, market_cap: 12345678901, total_volume: 987654321, price_change_percentage_1h_in_currency: 1.89, price_change_percentage_24h_in_currency: -2.34, price_change_percentage_7d_in_currency: 7.89 },
+            { market_cap_rank: 10, name: "Dogecoin", symbol: "doge", current_price: 0.0789, market_cap: 9876543210, total_volume: 876543210, price_change_percentage_1h_in_currency: -0.45, price_change_percentage_24h_in_currency: 1.67, price_change_percentage_7d_in_currency: 3.45 }
+        ];
+
         // 格式化函数
         function formatNumber(value, decimals = 2) {
             if (!value || value === 0) return "0";
@@ -198,118 +232,89 @@
         }
 
         // 加载市场数据
-        async function loadMarketData() {
-            try {
-                // 使用CORS代理
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const apiUrl = 'https://api.coingecko.com/api/v3/global';
-                const response = await fetch(proxyUrl + apiUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': 'TokenData/1.0'
-                    }
-                });
-                const data = await response.json();
-                const globalData = data.data;
-                
-                const summaryHTML = `
-                    <div class="summary-card">
-                        <h4>💰 总市值</h4>
-                        <p class="positive">${formatCurrency(globalData.total_market_cap.usd)}</p>
-                    </div>
-                    <div class="summary-card">
-                        <h4>📊 24h成交量</h4>
-                        <p style="color: #3498db;">${formatCurrency(globalData.total_volume.usd)}</p>
-                    </div>
-                    <div class="summary-card">
-                        <h4>🔄 24h变化</h4>
-                        <p class="${globalData.market_cap_change_percentage_24h_usd >= 0 ? 'positive' : 'negative'}">
-                            ${formatPercentage(globalData.market_cap_change_percentage_24h_usd)}
-                        </p>
-                    </div>
-                    <div class="summary-card">
-                        <h4>₿ BTC主导</h4>
-                        <p style="color: #f39c12;">${globalData.market_cap_percentage.btc.toFixed(2)}%</p>
-                    </div>
-                `;
-                
-                document.getElementById('market-summary').innerHTML = summaryHTML;
-            } catch (error) {
-                document.getElementById('market-summary').innerHTML = 
-                    '<div class="error">无法加载市场数据</div>';
-            }
+        function loadMarketData() {
+            const globalData = mockGlobalData;
+            
+            const summaryHTML = `
+                <div class="summary-card">
+                    <h4>💰 总市值</h4>
+                    <p class="positive">${formatCurrency(globalData.total_market_cap.usd)}</p>
+                </div>
+                <div class="summary-card">
+                    <h4>📊 24h成交量</h4>
+                    <p style="color: #3498db;">${formatCurrency(globalData.total_volume.usd)}</p>
+                </div>
+                <div class="summary-card">
+                    <h4>🔄 24h变化</h4>
+                    <p class="${globalData.market_cap_change_percentage_24h_usd >= 0 ? 'positive' : 'negative'}">
+                        ${formatPercentage(globalData.market_cap_change_percentage_24h_usd)}
+                    </p>
+                </div>
+                <div class="summary-card">
+                    <h4>₿ BTC主导</h4>
+                    <p style="color: #f39c12;">${globalData.market_cap_percentage.btc.toFixed(2)}%</p>
+                </div>
+            `;
+            
+            document.getElementById('market-summary').innerHTML = summaryHTML;
         }
 
         // 加载代币数据
-        async function loadTokenData() {
-            try {
-                const limit = document.getElementById('limit-select').value;
-                // 使用CORS代理
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const apiUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false`;
-                const response = await fetch(proxyUrl + apiUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': 'TokenData/1.0'
-                    }
-                });
-                const data = await response.json();
-                
-                let tableHTML = `
-                    <table class="token-table">
-                        <thead>
-                            <tr>
-                                <th>排名</th>
-                                <th>代币</th>
-                                <th>价格</th>
-                                <th>1h变化</th>
-                                <th>24h变化</th>
-                                <th>7d变化</th>
-                                <th>24h成交量</th>
-                                <th>市值</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                data.forEach(token => {
-                    const change1h = token.price_change_percentage_1h_in_currency || 0;
-                    const change24h = token.price_change_percentage_24h_in_currency || 0;
-                    const change7d = token.price_change_percentage_7d_in_currency || 0;
-                    
-                    tableHTML += `
+        function loadTokenData() {
+            const limit = parseInt(document.getElementById('limit-select').value);
+            const data = mockTokens.slice(0, limit);
+            
+            let tableHTML = `
+                <table class="token-table">
+                    <thead>
                         <tr>
-                            <td>#${token.market_cap_rank}</td>
-                            <td>
-                                <div style="font-weight: bold;">${token.name}</div>
-                                <div style="font-size: 12px; color: #7f8c8d;">${token.symbol.toUpperCase()}</div>
-                            </td>
-                            <td style="font-weight: bold;">${formatCurrency(token.current_price)}</td>
-                            <td class="${getChangeColor(change1h)}">${formatPercentage(change1h)}</td>
-                            <td class="${getChangeColor(change24h)}">${formatPercentage(change24h)}</td>
-                            <td class="${getChangeColor(change7d)}">${formatPercentage(change7d)}</td>
-                            <td>${formatCurrency(token.total_volume)}</td>
-                            <td>${formatCurrency(token.market_cap)}</td>
+                            <th>排名</th>
+                            <th>代币</th>
+                            <th>价格</th>
+                            <th>1h变化</th>
+                            <th>24h变化</th>
+                            <th>7d变化</th>
+                            <th>24h成交量</th>
+                            <th>市值</th>
                         </tr>
-                    `;
-                });
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach(token => {
+                const change1h = token.price_change_percentage_1h_in_currency || 0;
+                const change24h = token.price_change_percentage_24h_in_currency || 0;
+                const change7d = token.price_change_percentage_7d_in_currency || 0;
                 
-                tableHTML += '</tbody></table>';
-                document.getElementById('token-table-container').innerHTML = tableHTML;
-                
-                // 更新最后更新时间
-                document.getElementById('last-update').innerHTML = 
-                    `最后更新: ${new Date().toLocaleString('zh-CN')}`;
-                    
-            } catch (error) {
-                document.getElementById('token-table-container').innerHTML = 
-                    '<div class="error">无法加载代币数据</div>';
-            }
+                tableHTML += `
+                    <tr>
+                        <td>#${token.market_cap_rank}</td>
+                        <td>
+                            <div style="font-weight: bold;">${token.name}</div>
+                            <div style="font-size: 12px; color: #7f8c8d;">${token.symbol.toUpperCase()}</div>
+                        </td>
+                        <td style="font-weight: bold;">${formatCurrency(token.current_price)}</td>
+                        <td class="${getChangeColor(change1h)}">${formatPercentage(change1h)}</td>
+                        <td class="${getChangeColor(change24h)}">${formatPercentage(change24h)}</td>
+                        <td class="${getChangeColor(change7d)}">${formatPercentage(change7d)}</td>
+                        <td>${formatCurrency(token.total_volume)}</td>
+                        <td>${formatCurrency(token.market_cap)}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            document.getElementById('token-table-container').innerHTML = tableHTML;
+            
+            // 更新最后更新时间
+            document.getElementById('last-update').innerHTML = 
+                `最后更新: ${new Date().toLocaleString('zh-CN')} (演示数据)`;
         }
 
         // 加载所有数据
-        async function loadData() {
-            await Promise.all([loadMarketData(), loadTokenData()]);
+        function loadData() {
+            loadMarketData();
+            loadTokenData();
         }
 
         // 页面加载时获取数据
